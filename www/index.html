@@ -26,8 +26,8 @@ nav button{flex:1;border:0;background:none;color:var(--mut);padding:10px 2px;fon
 nav button.on{color:var(--navy);font-weight:700;border-top-color:var(--gold)}
 @media(prefers-color-scheme:dark){nav button.on{color:var(--gold)}}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px}
-.nm{font-weight:700;font-size:1.05rem}
-.nm small{color:var(--mut);font-weight:400;margin-inline-start:16px;font-size:.85rem}
+.nm{font-weight:700;font-size:1.05rem;display:flex;align-items:baseline;justify-content:space-between;gap:24px}
+.nm small{color:var(--mut);font-weight:400;font-size:.85rem}
 .chips{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px}
 .chip{border:1px solid var(--line);background:var(--chip);color:var(--ink);border-radius:10px;padding:11px 4px;font:inherit;font-size:.92rem}
 .chip.on{background:var(--ok);border-color:var(--ok);color:#fff;font-weight:700}
@@ -60,6 +60,9 @@ td.g{color:var(--ok);font-weight:700}
 a{color:var(--navy)}@media(prefers-color-scheme:dark){a{color:var(--gold)}}
 
 body.student .tonly{display:none!important}
+nav button.aonly{display:none}
+body.admin nav button.aonly{display:block}
+body.admin nav button{font-size:.72rem}
 .overlay{position:fixed;inset:0;background:var(--bg);z-index:40;display:none;align-items:center;justify-content:center;padding:20px;overflow:auto}
 .overlay.show{display:flex}
 .overlay .box{width:100%;max-width:380px}
@@ -110,7 +113,13 @@ body.student .tonly{display:none!important}
     </select>
     <div class="card scroll"><table id="reportTable"></table></div>
     <button class="btn wide" onclick="shareReport()">مشاركة التقرير (واتساب وغيره)</button>
-    <p class="mut">الصلاة والقراءة: عدد الأيام. التناول والاعتراف: هل تم هذا الشهر (✓ أو ✗). الأحمر يعني لم يُسجَّل.</p>
+    <p class="mut">الصلاة والقراءة: عدد الأيام. التناول والاعتراف: هل تم هذا الشهر (✝ أو ✗). الأحمر يعني لم يُسجَّل.</p>
+  </section>
+
+  <section id="t-admin" class="tab">
+    <div class="sum" id="adminSum"></div>
+    <p class="mut">اضغط على الخادم لرؤية طلابه ومتابعتهم.</p>
+    <div id="adminList"></div>
   </section>
 
   <section id="t-account" class="tab">
@@ -125,6 +134,7 @@ body.student .tonly{display:none!important}
   <button data-t="month" onclick="go('month')">الشهر</button>
   <button class="tonly" data-t="students" onclick="go('students')">الطلاب</button>
   <button class="tonly" data-t="report" onclick="go('report')">التقرير</button>
+  <button class="aonly" data-t="admin" onclick="go('admin')">الخدام</button>
   <button data-t="account" onclick="go('account')">حسابي</button>
 </nav>
 
