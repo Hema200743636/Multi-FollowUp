@@ -1,0 +1,64 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function isTeacher() {
+      return signedIn() && exists(/databases/$(database)/documents/teachers/$(request.auth.uid));
+    }
+    function isAdmin() {
+      return isTeacher() &&
+        get(/databases/$(database)/documents/teachers/$(request.auth.uid)).data.get('admin', false) == true;
+    }
+    function isStudent() {
+      return signedIn() && exists(/databases/$(database)/documents/students/$(request.auth.uid));
+    }
+    function myTeacher() {
+      return get(/databases/$(database)/documents/students/$(request.auth.uid)).data.teacherId;
+    }
+
+    // Teachers. The admin can create new teachers (name only).
+    match /teachers/{tid} {
+      allow read: if signedIn() && request.auth.uid == tid;
+      allow create: if isAdmin() && request.resource.data.keys().hasOnly(['name']);
+      allow update, delete: if false;
+
+      // Records of this teacher's students
+      match /records/{id} {
+        allow read: if signedIn() &&
+          ((request.auth.uid == tid && isTeacher()) || resource.data.sid == request.auth.uid);
+        allow create, update: if signedIn() &&
+          ((request.auth.uid == tid && isTeacher()) ||
+           (isStudent()
+            && myTeacher() == tid
+            && request.resource.data.sid == request.auth.uid
+            && id == request.auth.uid + '_' + request.resource.data.d
+            && request.resource.data.keys().hasOnly(['sid','d','p','b'])));
+        allow delete: if signedIn() && request.auth.uid == tid && isTeacher();
+      }
+
+      match /mrecords/{id} {
+        allow read: if signedIn() &&
+          ((request.auth.uid == tid && isTeacher()) || resource.data.sid == request.auth.uid);
+        allow create, update: if signedIn() &&
+          ((request.auth.uid == tid && isTeacher()) ||
+           (isStudent()
+            && myTeacher() == tid
+            && request.resource.data.sid == request.auth.uid
+            && id == request.auth.uid + '_' + request.resource.data.m
+            && request.resource.data.keys().hasOnly(['sid','m','c','f'])));
+        allow delete: if signedIn() && request.auth.uid == tid && isTeacher();
+      }
+    }
+
+    // Students. Each belongs to one teacher (teacherId).
+    match /students/{sid} {
+      allow read: if signedIn() &&
+        (request.auth.uid == sid || (isTeacher() && resource.data.teacherId == request.auth.uid));
+      allow create: if isTeacher() && request.resource.data.teacherId == request.auth.uid;
+      allow update: if isTeacher() && resource.data.teacherId == request.auth.uid
+                    && request.resource.data.teacherId == request.auth.uid;
+      allow delete: if isTeacher() && resource.data.teacherId == request.auth.uid;
+    }
+  }
+}
